@@ -12,8 +12,13 @@ public class LuxuryCar extends Car {
     public static LuxuryCar CreateNewCar() {
         Scanner sc = new Scanner(System.in);
         Car baseCar = Car.CreateNewCar();
-        System.out.println("Please enter Insurance Fees:");
-        double insuranceFees = sc.nextDouble();
+        double insuranceFees = 0;
+        do {
+            System.out.println("Please enter Insurance Fees:");
+            insuranceFees = sc.nextDouble();
+        }
+        while (insuranceFees < 0);
+        
         return new LuxuryCar(
                 baseCar.getId(),
                 baseCar.getBrand(),

@@ -36,9 +36,16 @@ public class Car {
         String model = sc.nextLine();
         System.out.println("Please enter car year:");
         int year = sc.nextInt();
+        if (year > 2026 || year < 1990) {
+            throw new IllegalArgumentException("Year must be between 1990 and 2026!");
+        }
         sc.nextLine();
-        System.out.println("Please enter car Price Per Day:");
-        double price = sc.nextDouble();
+        double price = 0;
+        do {
+            System.out.println("Please enter car Price Per Day:");
+            price = sc.nextDouble();
+        }
+        while (price < 0);
         return new Car(id, brand, model, year, price);
 
     }

@@ -95,4 +95,10 @@ public class Customer {
         }
     }
 
+    public void resetCustomerRental() {
+        rentedDays = 0;
+        rentedCarId = -1;
+        totalPaidAmount = 0;
+    }
+
 }

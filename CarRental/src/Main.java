@@ -1,10 +1,13 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Main {
-    static ArrayList<Car> cars = new ArrayList<Car>();
-    static ArrayList<Customer> customers = new ArrayList<Customer>();
-    static ArrayList<LuxuryCar> luxuryCars = new ArrayList<LuxuryCar>();
+    static final int maxNumberOfCars = 20;
+    static final int maxNumberOfCustomers = 20;
+    static HashMap<Integer, Car> cars = new HashMap<>();
+    static HashMap<Integer, Customer> customers = new HashMap<>();
+    static HashMap<Integer, LuxuryCar> luxuryCars = new HashMap<>();
 
     private static void printBanner() {
         System.out.println("========================================\n" +
@@ -25,18 +28,9 @@ public class Main {
                 "Enter your choice:");
     }
 
-    public static Car getCar(int id) {
-        for (Car car : cars) {
-            if (car.getId() == id) {
-                return car;
-            }
-        }
-        return null;
-    }
-
     public static ArrayList<Car> getCarsByBrand(String brand) {
-        ArrayList<Car> selectedCars = new ArrayList<Car>();
-        for (Car car : cars) {
+        ArrayList<Car> selectedCars = new ArrayList<>();
+        for (Car car : cars.values()) {
             if (car.getBrand().equalsIgnoreCase(brand)) {
                 selectedCars.add(car);
             }
@@ -44,94 +38,102 @@ public class Main {
         return selectedCars;
     }
 
-    public static Customer getCustomer(int id) {
-        for (Customer customer : customers) {
-            if (customer.getId() == id) {
-                return customer;
-            }
-        }
-        return null;
+    private static void printCarBasic(Car car, int index) {
+        System.out.println(index + ". " + car.getId() + " " + car.getBrand() + " " + car.getModel());
     }
 
-    public static LuxuryCar getLuxuryCar(int id) {
-        for (LuxuryCar luxuryCar : luxuryCars) {
-            if (luxuryCar.getId() == id) {
-                return luxuryCar;
-            }
-        }
-        return null;
+    private static void printCarDetails(Car car) {
+        LuxuryCar luxuryCar = luxuryCars.get(car.getId());
+        if (luxuryCar != null) luxuryCar.printCarDetails();
+        else car.printCarDetails();
     }
 
     public static void main(String[] args) {
-        final int maxNumberOfCars = 20;
-        final int maxNumberOfCustomers = 20;
         double officeIncome = 0;
         int choice = 0;
         do {
             printBanner();
             Scanner sc = new Scanner(System.in);
             choice = sc.nextInt();
+            sc.nextLine();
 
             switch (choice) {
-                case 1: // add new regular car
+                case 1: // add new Regular Car
                 {
                     if (Car.getTotalNumberOfCars() == maxNumberOfCars) {
                         System.out.println("You've already reached the Maximum number of Available Cars");
                     } else {
-                        Car car = Car.CreateNewCar();
-                        cars.add(car);
-                        System.out.println("Car Added Successfully!");
-                    }
-                    break;
-
-                }
-                case 2: //add new luxury car
-                {
-                    if (Car.getTotalNumberOfCars() == maxNumberOfCars) {
-                        System.out.println("You've already reached the Maximum number of Available Cars");
-                    } else {
-
-                        LuxuryCar car = LuxuryCar.CreateNewCar();
-                        cars.add(car);
-                        luxuryCars.add(car);
-                        System.out.println("Luxury Car Added Successfully!");
-                    }
-                    break;
-                }
-                case 3: {
-                    if (Customer.getCount() == maxNumberOfCustomers) {
-                        System.out.println("You've already reached the Maximum number of Customers");
-                    } else {
-                        Customer customer = Customer.createNewCustomer();
-                        customers.add(customer);
-                        System.out.println("Customer Added Successfully with Id " + customer.getId());
-                    }
-                    break;
-                }
-                case 4: {
-                    if (Car.getTotalNumberOfCars() == 0) {
-                        System.out.println("No Cars Added Yet! ");
-                    } else {
-                        for (int i = 0; i < cars.size(); i++) {
-                            System.out.println(i + 1 + ". " + cars.get(i).getId() + " " + cars.get(i).getBrand() + " " + cars.get(i).getModel());
-
+                        try {
+                            Car car = Car.CreateNewCar();
+                            if (cars.containsKey(car.getId())) {
+                                System.out.println("Car Cannot be Added, duplicate Id!");
+                            } else {
+                                cars.put(car.getId(), car);
+                                System.out.println("Car Added Successfully!");
+                            }
+                        } catch (IllegalArgumentException e) {
+                            System.out.println(e);
                         }
                     }
                     break;
                 }
-                case 5: // available
+                case 2: // add new Luxury Car
                 {
+                    if (Car.getTotalNumberOfCars() == maxNumberOfCars) {
+                        System.out.println("You've already reached the Maximum number of Available Cars");
+                    } else {
+                        LuxuryCar car = LuxuryCar.CreateNewCar();
+                        if (cars.containsKey(car.getId())) {
+                            System.out.println("Car Cannot be Added, duplicate Id!");
+                        } else {
+                            cars.put(car.getId(), car);
+                            luxuryCars.put(car.getId(), car);
+                            System.out.println("Luxury Car Added Successfully!");
+                        }
+                    }
+                    break;
+                }
+                case 3: { // add new Customer
+                    if (Customer.getCount() == maxNumberOfCustomers) {
+                        System.out.println("You've already reached the Maximum number of Customers");
+                    } else {
+                        Customer customer = Customer.createNewCustomer();
+                        if (customers.containsKey(customer.getId())) {
+                            System.out.println("Customer Cannot be Added, duplicate Id!");
+                        } else {
+                            customers.put(customer.getId(), customer);
+                            System.out.println("Customer Added Successfully with Id " + customer.getId());
+                        }
+                    }
+                    break;
+                }
+                case 4: { // Display All Cars
+                    if (Car.getTotalNumberOfCars() == 0) {
+                        System.out.println("No Cars Added Yet! ");
+                    } else {
+                        int index = 1;
+                        for (Car car : cars.values()) {
+                            printCarBasic(car, index++);
+                            printCarDetails(car);
+                        }
+                    }
+                    break;
+                }
+                case 5: // Display Available Cars
+                {
+                    int index = 1;
                     int availableCarsCount = 0;
-                    for (int i = 0; i < cars.size(); i++) {
-                        if (cars.get(i).isAvailable()) {
-                            System.out.println(i + 1 + ". " + cars.get(i).getId() + " " + cars.get(i).getBrand() + " " + cars.get(i).getModel());
+                    for (Car car : cars.values()) {
+                        if (car.isAvailable()) {
+                            printCarBasic(car, index++);
+                            printCarDetails(car);
                             availableCarsCount++;
                         }
                     }
                     System.out.println("Total number of Available Cars: " + availableCarsCount);
                     break;
                 }
-                case 6: // rent a car
+                case 6: // Rent a Car
                 {
                     System.out.println("Please enter Customer Id:");
                     int customerId = sc.nextInt();
@@ -145,93 +147,87 @@ public class Main {
                     int rentalDays = sc.nextInt();
                     sc.nextLine();
 
-                    Customer customer = getCustomer(customerId);
-                    if (customer != null) {
-                        if (customer.getRentedCarId() == -1) {
-                            Car car = getCar(carId);
-                            if (car != null) {
-                                if (car.isAvailable()) {
-                                    if (rentalDays > 0) {
-                                        LuxuryCar luxuryCar = getLuxuryCar(carId);
-                                        double totalCost = rentalDays * car.getPrice() + car.getTax();
-                                        if (luxuryCar != null && rentalDays <= luxuryCar.getMinimumDays()) {
-                                            totalCost += luxuryCar.getInsuranceFees();
-                                        }
-                                        car.setAvailable(false);
-                                        customer.setRentedCarId(carId);
-                                        customer.setRentedDays(rentalDays);
-                                        customer.setTotalPaidAmount(customer.getTotalPaidAmount() + totalCost);
-                                        officeIncome += totalCost;
-                                        System.out.println("Car Rented Successfully!\n" +
-                                                "Customer Name : " + customer.getName() +
-                                                "\n Car Brand : " + car.getBrand() +
-                                                "\n Car Model : " + car.getModel() +
-                                                "\n Number of Rented Days : " + rentalDays +
-                                                "\n Final Amount : " + totalCost
-                                        );
-                                    } else {
-                                        System.out.println("Rental Days incorrect!");
-                                    }
-                                } else {
-                                    System.out.println("Car unavailable!");
-                                }
-                            } else {
-                                System.out.println("Car not found!");
-
-                            }
-                        } else {
-                            System.out.println("Cannot Rent a new Car, Customer Has a rented Car!");
-                        }
-                    } else {
+                    Customer customer = customers.get(customerId);
+                    if (customer == null) {
                         System.out.println("Customer not found!");
+                        break;
                     }
+                    if (customer.getRentedCarId() != -1) {
+                        System.out.println("Cannot Rent a new Car, Customer Has a rented Car!");
+                        break;
+                    }
+                    Car car = cars.get(carId);
+                    if (car == null) {
+                        System.out.println("Car not found!");
+                        break;
+                    }
+                    if (!car.isAvailable()) {
+                        System.out.println("Car unavailable!");
+                        break;
+                    }
+                    LuxuryCar luxuryCar = luxuryCars.get(carId);
+                    int minimumDays = luxuryCar != null ?
+                            luxuryCar.getMinimumDays() : 0;
+                    if (rentalDays < minimumDays) {
+                        System.out.println("Rental Days incorrect!");
+                        break;
+                    }
+                    double totalCost = rentalDays * car.getPrice() + car.getTax();
+                    if (luxuryCar != null && rentalDays <= luxuryCar.getMinimumDays()) {
+                        totalCost += luxuryCar.getInsuranceFees();
+                    }
+                    car.setAvailable(false);
+                    customer.setRentedCarId(carId);
+                    customer.setRentedDays(rentalDays);
+                    customer.setTotalPaidAmount(customer.getTotalPaidAmount() + totalCost);
+                    officeIncome += totalCost;
+                    System.out.println("Car Rented Successfully!\n" +
+                            "Customer Name : " + customer.getName() +
+                            "\n Car Brand : " + car.getBrand() +
+                            "\n Car Model : " + car.getModel() +
+                            "\n Number of Rented Days : " + rentalDays +
+                            "\n Final Amount : " + totalCost
+                    );
                     break;
                 }
-                case 7: //return car
+                case 7: // Return car
                 {
                     System.out.println("Please enter Customer Id:");
                     int customerId = sc.nextInt();
 
-                    Customer customer = getCustomer(customerId);
-                    if (customer != null) {
-                        int carId = customer.getRentedCarId();
-                        if (carId != -1) {
-                            Car car = getCar(carId);
-                            if (car != null) {
-                                car.setAvailable(true);
-                                customer.setRentedDays(0);
-                                customer.setRentedCarId(-1);
-                                customer.setTotalPaidAmount(0);
-                                System.out.println("Car Returned Successfully!\n" +
-                                        "Customer Name : " + customer.getName() +
-                                        "\n Car Brand : " + car.getBrand() +
-                                        "\n Car Model : " + car.getModel());
-                            } else {
-                                System.out.println("Car not found!");
-
-                            }
-                        } else {
-                            System.out.println("Customer does not have a rented Car!");
-                        }
-                    } else {
+                    Customer customer = customers.get(customerId);
+                    if (customer == null) {
                         System.out.println("Customer not found!");
+                        break;
                     }
+                    int carId = customer.getRentedCarId();
+                    if (carId == -1) {
+                        System.out.println("Customer does not have a rented Car!");
+                        break;
+                    }
+                    Car car = cars.get(carId);
+                    if (car == null) {
+                        System.out.println("Car not found!");
+                        break;
+                    }
+                    car.setAvailable(true);
+                    customer.resetCustomerRental();
+                    System.out.println("Car Returned Successfully!\n" +
+                            "Customer Name : " + customer.getName() +
+                            "\n Car Brand : " + car.getBrand() +
+                            "\n Car Model : " + car.getModel());
                     break;
                 }
-                case 8: //search car by Id
+                case 8: //search car by ID
                 {
                     System.out.println("Please enter Car Id:");
                     int carId = sc.nextInt();
-                    Car car = getCar(carId);
-                    LuxuryCar luxuryCar = getLuxuryCar(carId);
-                    if (car != null) {
-                        car.printCarDetails();
-                        if (luxuryCar != null) {
-                            luxuryCar.printCarDetails();
-                        }
-                    } else {
+                    Car car = cars.get(carId);
+                    if (car == null) {
                         System.out.println("Car Not Found!");
+                        break;
                     }
+                    printCarDetails(car);
                     break;
                 }
                 case 9: //search car by brand
@@ -239,34 +235,23 @@ public class Main {
                     System.out.println("Please enter Car Brand:");
                     String carBrand = sc.nextLine();
                     ArrayList<Car> selectedCars = getCarsByBrand(carBrand);
-                    if (!selectedCars.isEmpty()) {
-                        for (Car car : selectedCars) {
-                            LuxuryCar luxuryCar = getLuxuryCar(car.getId());
-                            if (luxuryCar != null) {
-                                luxuryCar.printCarDetails();
-                            } else {
-                                car.printCarDetails();
-                            }
-                        }
-                    } else {
-                        System.out.println("Car Not Found!");
+                    if (selectedCars.isEmpty()) {
+                        System.out.println("No Cars with this Brand Found!");
+                        break;
+                    }
+                    for (Car car : selectedCars) {
+                        printCarDetails(car);
                     }
                     break;
                 }
                 case 10: //display all customers
                 {
                     if (!customers.isEmpty()) {
-                        for (Customer customer : customers) {
-
+                        for (Customer customer : customers.values()) {
                             customer.printDetails();
-                            Car car = getCar(customer.getRentedCarId());
+                            Car car = cars.get(customer.getRentedCarId());
                             if (car != null) {
-                                LuxuryCar luxuryCar = getLuxuryCar(car.getId());
-                                if (luxuryCar != null) {
-                                    luxuryCar.printCarDetails();
-                                } else {
-                                    car.printCarDetails();
-                                }
+                                printCarDetails(car);
                             }
                         }
                     } else {
@@ -278,6 +263,10 @@ public class Main {
                 {
                     System.out.println("Thank you for using Rental Services!");
                     return;
+                }
+                default: {
+                    System.out.println("Invalid Choice!");
+                    break;
                 }
             }
         } while (choice != 0);
